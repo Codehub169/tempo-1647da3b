@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play Game! - Kids Fun Games</title> <!-- Title can be updated by JS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Basic styles to make the page usable before css/style.css is created */
+        body {
+            font-family: 'Comic Sans MS', 'Nunito', cursive, sans-serif;
+            background-color: #F0F8FF; /* Alice Blue */
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .game-page-header {
+            background-color: #1E90FF; /* Dodger Blue */
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .game-page-header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .back-button {
+            background-color: #FFD700; /* Gold */
+            color: #333;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 20px;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .back-button:hover {
+            background-color: #e6c300; /* Darker Gold */
+            transform: scale(1.05);
+        }
+        .game-main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #game-area {
+            background-color: white;
+            border: 5px solid #32CD32; /* Lime Green */
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            /* Dimensions will likely be set by game script or specific game CSS */
+        }
+        #game-canvas {
+            display: block; /* Removes extra space below canvas if it's inline */
+            /* width/height for canvas should be set via JS or attributes for proper rendering */
+        }
+        #game-info {
+            margin-top: 20px;
+            background-color: #FF69B4; /* Hot Pink */
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            gap: 30px;
+            font-size: 1.2em;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #game-info div {
+            font-weight: bold;
+        }
+        .game-page-footer {
+            background-color: #1E90FF; /* Dodger Blue */
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 0.9em;
+            margin-top: auto; /* Pushes footer to bottom if content is short */
+        }
+    </style>
+</head>
+<body>
+    <header class="game-page-header">
+        <a href="index.html" class="back-button">&larr; Back to Menu</a>
+        <h1 id="game-title">Game Time! <span class="icon">&#127922;</span></h1> <!-- 🎲 U+1F3B2 GAME DIE -->
+    </header>
+    <main class="game-main">
+        <section id="game-area">
+            <!-- Game content will be loaded here by js/game_loader.js -->
+            <!-- Example: a canvas element for HTML5 games -->
+            <canvas id="game-canvas" width="600" height="400">
+                Your browser does not support the HTML5 canvas tag.
+            </canvas>
+        </section>
+        <section id="game-info">
+            <div id="score-display">Score: <span id="score-value">0</span></div>
+            <div id="level-display">Level: <span id="level-value">1</span></div>
+            <!-- More game-specific info/controls can be added here -->
+        </section>
+    </main>
+    <footer class="game-page-footer">
+        <p>Have fun playing! Remember to take breaks! <span class="icon">&#128171;</span></p>
+    </footer>
+    <script src="js/game_loader.js"></script>
+</body>
+</html>

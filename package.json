@@ -1,0 +1,12 @@
+{
+  "name": "kids-fun-games",
+  "version": "1.0.0",
+  "description": "A collection of simple, engaging, and fun web-based games for young children.",
+  "main": "index.html",
+  "scripts": {
+    "start": "sh startup.sh"
+  },
+  "keywords": ["kids", "games", "fun", "interactive", "browser-games"],
+  "author": "Kids Fun Games Team",
+  "license": "MIT"
+}
