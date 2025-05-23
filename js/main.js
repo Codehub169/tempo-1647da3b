@@ -7,25 +7,31 @@ document.addEventListener('DOMContentLoaded', () => {
             id: 'sample_game',
             title: 'Shape Clicker',
             description: 'Click the colorful shapes as they appear. Test your speed and accuracy!',
-            // Using a vibrant, abstract image that suggests fun and colors
             imageUrl: 'https://images.unsplash.com/photo-1509343256512-d77a5cb3791b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fGFic3RyYWN0JTIwY29sb3JmdWx8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=300&q=80',
-            icon: '🎨', // Unicode icon, used as a fallback or supplementary visual
-            pageUrl: 'game.html' // The page that hosts the game environment
+            icon: '\ud83c\udfa8', // Artist Palette emoji
+            pageUrl: 'game.html'
         },
+        {
+            id: 'memory_match',
+            title: 'Memory Match',
+            description: 'Flip cards and find matching pairs! Test your memory.',
+            imageUrl: 'https://images.unsplash.com/photo-1604145490944-166090027c65?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8bWVtb3J5JTIwZ2FtZSUyMGtpZHN8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=300&q=80',
+            icon: '\ud83e\udde0', // Brain emoji
+            pageUrl: 'game.html'
+        }
         // Example of how another game could be added in the future:
         // {
         //     id: 'color_match',
         //     title: 'Color Match Challenge',
         //     description: 'Match the falling blocks with the correct color. How long can you last?',
         //     imageUrl: 'https://images.unsplash.com/photo-1558470598-59bf607a5f44?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y29sb3JmdWwlMjBibG9ja3N8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=300&q=80',
-        //     icon: '🧱',
+        //     icon: '\ud83e\uddf1', // Bricks emoji
         //     pageUrl: 'game.html'
         // }
     ];
 
     if (!gameListContainer) {
         console.error('Critical Error: Game list container (div#game-list-container) not found in index.html.');
-        // Display a user-friendly message if the container is missing
         const body = document.querySelector('body');
         if (body) {
             const errorMsg = document.createElement('p');
@@ -33,64 +39,74 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMsg.style.color = 'red';
             errorMsg.style.textAlign = 'center';
             errorMsg.style.fontSize = '1.2em';
+            errorMsg.style.padding = '20px';
             body.insertBefore(errorMsg, body.firstChild);
         }
         return;
     }
 
-    // Function to load games into the list container
     function loadGames() {
-        gameListContainer.innerHTML = ''; // Clear any existing content (e.g., placeholders)
+        gameListContainer.innerHTML = ''; // Clear placeholders or old content
 
         if (gamesData.length === 0) {
-            gameListContainer.innerHTML = '<p style="text-align:center; font-size: 1.2em; color: #555;">No games available at the moment. Please check back soon!</p>';
+            const noGamesMsg = document.createElement('p');
+            noGamesMsg.textContent = 'No games available at the moment. Please check back soon!';
+            noGamesMsg.style.textAlign = 'center';
+            noGamesMsg.style.fontSize = '1.2em';
+            noGamesMsg.style.color = '#555';
+            gameListContainer.appendChild(noGamesMsg);
             return;
         }
 
+        const fragment = document.createDocumentFragment();
         gamesData.forEach(game => {
             const gameCard = document.createElement('div');
             gameCard.className = 'game-card';
             gameCard.setAttribute('aria-label', `Game card for ${game.title}`);
 
-            // Game Image (or Icon as fallback)
             if (game.imageUrl) {
                 const img = document.createElement('img');
                 img.src = game.imageUrl;
-                img.alt = game.title + ' game preview'; // Descriptive alt text
+                img.alt = `${game.title} game preview`;
+                img.onerror = () => { // Fallback if image fails to load
+                    img.remove();
+                    if (game.icon) {
+                        const iconSpan = document.createElement('span');
+                        iconSpan.className = 'icon';
+                        iconSpan.textContent = game.icon;
+                        iconSpan.setAttribute('aria-hidden', 'true');
+                        gameCard.insertBefore(iconSpan, gameCard.firstChild); // Insert icon at the beginning
+                    }
+                };
                 gameCard.appendChild(img);
             } else if (game.icon) {
-                // Fallback to icon if no image URL is provided
                 const iconSpan = document.createElement('span');
                 iconSpan.className = 'icon';
                 iconSpan.textContent = game.icon;
-                iconSpan.setAttribute('aria-hidden', 'true'); // Icon is decorative if title is present
+                iconSpan.setAttribute('aria-hidden', 'true');
                 gameCard.appendChild(iconSpan);
             }
             
-            // Game Title
-            const title = document.createElement('h3');
-            title.textContent = game.title;
-            gameCard.appendChild(title);
+            const titleElement = document.createElement('h3');
+            titleElement.textContent = game.title;
+            gameCard.appendChild(titleElement);
 
-            // Game Description
-            const description = document.createElement('p');
-            description.textContent = game.description;
-            gameCard.appendChild(description);
+            const descriptionElement = document.createElement('p');
+            descriptionElement.textContent = game.description;
+            gameCard.appendChild(descriptionElement);
 
-            // Play Button
             const playButton = document.createElement('button');
             playButton.textContent = 'Play Now!';
             playButton.setAttribute('aria-label', `Play ${game.title}`);
-            playButton.onclick = () => {
-                // Navigate to the game page, passing the game ID as a query parameter
-                window.location.href = `${game.pageUrl}?game=${game.id}`;
-            };
+            playButton.addEventListener('click', () => {
+                window.location.href = `${game.pageUrl}?game=${encodeURIComponent(game.id)}`;
+            });
             gameCard.appendChild(playButton);
 
-            gameListContainer.appendChild(gameCard);
+            fragment.appendChild(gameCard);
         });
+        gameListContainer.appendChild(fragment);
     }
 
-    // Load the games when the DOM is fully parsed and ready
     loadGames();
 });
