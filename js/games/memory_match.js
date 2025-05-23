@@ -1,6 +1,6 @@
 // js/games/memory_match.js
 
-const MemoryMatch = (() => {
+window.MemoryMatch = (() => {
     let canvas, ctx;
     let score = 0;
     let level = 1;
@@ -31,12 +31,20 @@ const MemoryMatch = (() => {
 
     function getSymbolsForLevel(currentLevel) {
         // Level 1: 4 pairs, Level 2: 6 pairs, Level 3: 8 pairs
+        // Based on cardsPerRow = 4, this means 8, 12, 16 cards respectively.
         let numPairs = gameConfig.cardsPerRow + (currentLevel - 1) * 2;
         numPairs = Math.min(numPairs, gameConfig.symbols.length); // Ensure we don't request more symbols than available
         return gameConfig.symbols.slice(0, numPairs);
     }
 
     function init(canvasElement, fnScoreUpdate, fnLevelUpdate) {
+        if (!canvasElement || typeof canvasElement.getContext !== 'function') {
+            console.error("MemoryMatch.init: Invalid canvas element provided.");
+            // game_loader.js should prevent this, but as a safeguard:
+            if (fnLevelUpdate) fnLevelUpdate("Err"); 
+            if (fnScoreUpdate) fnScoreUpdate("Err");
+            return;
+        }
         canvas = canvasElement;
         ctx = canvas.getContext('2d');
         updateScoreCallback = fnScoreUpdate;
@@ -63,8 +71,9 @@ const MemoryMatch = (() => {
                 ctx.fillStyle = gameConfig.backgroundColor;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = 'red';
-                ctx.font = '16px Arial';
+                ctx.font = '16px Arial'; // Using a widely available font for error message
                 ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
                 ctx.fillText('Error: Could not load symbols for this level.', canvas.width / 2, canvas.height / 2);
             }
             canFlip = false;
@@ -93,17 +102,18 @@ const MemoryMatch = (() => {
         }
 
         cards.forEach((card, index) => {
-            card.id = index;
+            card.id = index; // Unique ID for each card
             card.x = (index % gameConfig.cardsPerRow) * (gameConfig.cardWidth + gameConfig.cardPadding) + gameConfig.cardPadding;
             card.y = Math.floor(index / gameConfig.cardsPerRow) * (gameConfig.cardHeight + gameConfig.cardPadding) + gameConfig.cardPadding;
         });
         
-        updateScoreCallback(score); // Reflects current score (e.g., 0 for new level)
-        updateLevelCallback(level);
+        if(updateScoreCallback) updateScoreCallback(score);
+        if(updateLevelCallback) updateLevelCallback(level);
         draw();
     }
 
     function setupEventListeners() {
+        if (!canvas) return;
         if (eventListenerAttached) {
             canvas.removeEventListener('click', handleCanvasClick);
         }
@@ -129,34 +139,40 @@ const MemoryMatch = (() => {
     }
 
     function flipCard(card) {
+        if (card.isFlipped) return; // Do not flip already flipped card in current turn
+
         card.isFlipped = true;
         flippedCards.push(card);
         draw();
 
         if (flippedCards.length === 2) {
             canFlip = false;
-            setTimeout(checkForMatch, 1000);
+            setTimeout(checkForMatch, 1000); // Delay to let player see the second card
         }
     }
 
     function checkForMatch() {
         const [card1, card2] = flippedCards;
+        let gameResettingDueToLevelChange = false;
+
         if (card1.symbol === card2.symbol && card1.id !== card2.id) {
             card1.isMatched = true;
             card2.isMatched = true;
             matchedPairs++;
             score += gameConfig.matchBonus;
-            updateScoreCallback(score);
+            if(updateScoreCallback) updateScoreCallback(score);
 
             if (matchedPairs * 2 === cards.length) { // All pairs on current level found
+                gameResettingDueToLevelChange = true;
                 if (level < gameConfig.maxLevel) {
-                    if (score >= gameConfig.levelUpScoreThreshold) {
+                    if (score >= gameConfig.levelUpScoreThreshold * level) { // Score threshold might scale with level or be cumulative
+                                                                        // Original: gameConfig.levelUpScoreThreshold (score for current level attempt)
                         level++;
                         alert(`Level Up! Moving to Level ${level}.`);
-                        score = 0; 
+                        score = 0; // Reset score for the new level
                     } else {
                         alert(`Great job! You found all pairs! You need ${gameConfig.levelUpScoreThreshold} points on this level to advance. Try this level again!`);
-                        score = 0; 
+                        score = 0; // Reset score to retry current level with 0 points
                     }
                 } else {
                     alert('Congratulations! You completed all levels! Play again?');
@@ -166,13 +182,16 @@ const MemoryMatch = (() => {
                 setupGameForLevel(); // This will handle UI updates for score/level and redraw
             }
         } else {
+            // Not a match, or same card clicked (though logic should prevent latter)
             card1.isFlipped = false;
             card2.isFlipped = false;
         }
+
         flippedCards = [];
         canFlip = true;
-        if (!(matchedPairs * 2 === cards.length && card1.symbol === card2.symbol)) { // Avoid double draw if level changes
-             draw();
+
+        if (!gameResettingDueToLevelChange) {
+             draw(); // Redraw to flip cards back or show newly matched pair if not all pairs are found yet
         }
     }
 
@@ -190,6 +209,7 @@ const MemoryMatch = (() => {
             if (typeof ctx.roundRect === 'function') {
                 ctx.roundRect(card.x, card.y, gameConfig.cardWidth, gameConfig.cardHeight, [10]); // 10 is radius
             } else {
+                // Fallback for browsers not supporting roundRect
                 ctx.rect(card.x, card.y, gameConfig.cardWidth, gameConfig.cardHeight);
             }
             ctx.fill();
@@ -200,7 +220,7 @@ const MemoryMatch = (() => {
                 ctx.font = gameConfig.font;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(card.symbol, card.x + gameConfig.cardWidth / 2, card.y + gameConfig.cardHeight / 2);
+                ctx.fillText(card.symbol, card.x + gameConfig.cardWidth / 2, card.y + gameConfig.cardHeight / 2 + 5); // Small offset for better vertical centering of emojis
             }
         });
     }
