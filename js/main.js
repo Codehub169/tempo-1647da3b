@@ -18,16 +18,15 @@ document.addEventListener('DOMContentLoaded', () => {
             imageUrl: 'https://images.unsplash.com/photo-1604145490944-166090027c65?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8bWVtb3J5JTIwZ2FtZSUyMGtpZHN8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=300&q=80',
             icon: '\ud83e\udde0', // Brain emoji
             pageUrl: 'game.html'
+        },
+        {
+            id: 'falling_fun',
+            title: 'Falling Fun',
+            description: 'Catch the falling stars and hearts with your basket! How many can you get?',
+            imageUrl: 'https://images.unsplash.com/photo-1609077502818-102719204697?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fGZhbGxpbmclMjBzdGFyc3xlbnwwfHwwfHx8MA%3D&auto=format&fit=crop&w=300&q=80',
+            icon: '\ud83e\uddfa', // Basket emoji U+1F9FA
+            pageUrl: 'game.html'
         }
-        // Example of how another game could be added in the future:
-        // {
-        //     id: 'color_match',
-        //     title: 'Color Match Challenge',
-        //     description: 'Match the falling blocks with the correct color. How long can you last?',
-        //     imageUrl: 'https://images.unsplash.com/photo-1558470598-59bf607a5f44?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y29sb3JmdWwlMjBibG9ja3N8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=300&q=80',
-        //     icon: '\ud83e\uddf1', // Bricks emoji
-        //     pageUrl: 'game.html'
-        // }
     ];
 
     if (!gameListContainer) {
@@ -40,7 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMsg.style.textAlign = 'center';
             errorMsg.style.fontSize = '1.2em';
             errorMsg.style.padding = '20px';
-            body.insertBefore(errorMsg, body.firstChild);
+            // Attempt to insert before the first child of body, or append if no children
+            body.insertBefore(errorMsg, body.firstChild || null);
         }
         return;
     }
@@ -64,27 +64,36 @@ document.addEventListener('DOMContentLoaded', () => {
             gameCard.className = 'game-card';
             gameCard.setAttribute('aria-label', `Game card for ${game.title}`);
 
+            let imageOrIconAdded = false;
             if (game.imageUrl) {
                 const img = document.createElement('img');
                 img.src = game.imageUrl;
                 img.alt = `${game.title} game preview`;
                 img.onerror = () => { // Fallback if image fails to load
-                    img.remove();
+                    img.remove(); // Remove the broken image element
                     if (game.icon) {
                         const iconSpan = document.createElement('span');
-                        iconSpan.className = 'icon';
+                        iconSpan.className = 'icon'; // Ensure CSS for .icon is defined
                         iconSpan.textContent = game.icon;
                         iconSpan.setAttribute('aria-hidden', 'true');
-                        gameCard.insertBefore(iconSpan, gameCard.firstChild); // Insert icon at the beginning
+                        // Insert icon where the image would have been, or at the start
+                        if (gameCard.firstChild && gameCard.firstChild.nodeName !== 'H3') {
+                            gameCard.insertBefore(iconSpan, gameCard.firstChild);
+                        } else {
+                            gameCard.prepend(iconSpan); // Add to the beginning if no image was there
+                        }
                     }
                 };
                 gameCard.appendChild(img);
-            } else if (game.icon) {
+                imageOrIconAdded = true;
+            } 
+            
+            if (!imageOrIconAdded && game.icon) {
                 const iconSpan = document.createElement('span');
                 iconSpan.className = 'icon';
                 iconSpan.textContent = game.icon;
                 iconSpan.setAttribute('aria-hidden', 'true');
-                gameCard.appendChild(iconSpan);
+                gameCard.prepend(iconSpan); // Add to the beginning of the card
             }
             
             const titleElement = document.createElement('h3');
@@ -99,7 +108,13 @@ document.addEventListener('DOMContentLoaded', () => {
             playButton.textContent = 'Play Now!';
             playButton.setAttribute('aria-label', `Play ${game.title}`);
             playButton.addEventListener('click', () => {
-                window.location.href = `${game.pageUrl}?game=${encodeURIComponent(game.id)}`;
+                // Ensure game.pageUrl and game.id are valid before constructing URL
+                if (typeof game.pageUrl === 'string' && typeof game.id === 'string') {
+                    window.location.href = `${game.pageUrl}?game=${encodeURIComponent(game.id)}`;
+                } else {
+                    console.error('Invalid game data for navigation:', game);
+                    alert('Cannot start this game due to an internal error.');
+                }
             });
             gameCard.appendChild(playButton);
 
